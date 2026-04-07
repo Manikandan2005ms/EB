@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TN Energy Audit Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card2: #1a2235;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #00ff88;
+    --warn: #ffcc00;
+    --danger: #ff4444;
+    --text: #e0eaff;
+    --muted: #6b82a8;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none; z-index:0;
+  }
+
+  .screen {
+    display:none;
+    position:relative;
+    z-index:1;
+    padding: 20px;
+    min-height: 100vh;
+    animation: fadeIn 0.4s ease;
+  }
+  .screen.active { display:flex; flex-direction: column; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== SPLASH ===== */
+  #splash { align-items:center; justify-content:center; text-align: center; }
+  .logo-container { position: relative; width: 120px; height: 120px; margin-bottom: 25px; }
+  .logo-ring { position: absolute; inset: 0; border: 3px solid var(--accent); border-radius: 50%; box-shadow: 0 0 20px rgba(0,212,255,0.4); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
+  .logo-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50px; }
+
+  .app-name { font-family: 'Rajdhani', sans-serif; font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: 2px; }
+
+  /* ===== MENU ===== */
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+  .type-btn { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 20px; text-align: center; transition: 0.2s; cursor: pointer; }
+  .type-btn:active { background: var(--card2); border-color: var(--accent); }
+  .type-btn h3 { font-family: 'Rajdhani'; font-size: 18px; margin-top: 10px; }
+
+  /* ===== AUDIT FORM ===== */
+  .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+  .back-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 5px 12px; border-radius: 8px; font-size: 12px; }
+
+  .card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
+  .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .input-box { flex: 1; }
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+  input, select { width: 100%; background: #1f2937; border: 1px solid var(--border); border-radius: 8px; color: white; padding: 10px; font-size: 14px; }
+
+  .appliance-item { border-bottom: 1px solid var(--border); padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+  .remove-btn { color: var(--danger); font-size: 18px; cursor: pointer; padding: 5px; }
+
+  .btn-primary { background: var(--accent); color: var(--bg); border: none; padding: 15px; border-radius: 10px; font-weight: 700; width: 100%; margin-top: 10px; }
+
+  /* ===== RESULTS ===== */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: var(--card2); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+  .stat-value { font-size: 18px; font-weight: 700; color: var(--accent3); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+  th { text-align: left; color: var(--muted); padding: 8px 4px; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+  .verdict { font-size: 11px; font-weight: 600; padding: 3px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+  .verdict-good { background: rgba(0,255,136,0.2); color: var(--accent3); }
+  .verdict-bad { background: rgba(255,68,68,0.2); color: var(--danger); }
+
+  .waste-alert { color: var(--accent2); background: rgba(255,107,53,0.1); border-left: 3px solid var(--accent2); padding: 10px; margin-top: 10px; border-radius: 0 8px 8px 0; font-size: 13px; }
+</style>
+</head>
+<body>
+
+  <!-- SPLASH -->
+  <div id="splash" class="screen active">
+    <div class="logo-container">
+      <div class="logo-ring"></div>
+      <div class="logo-icon">⚡</div>
+    </div>
+    <h1 class="app-name">TN ENERGY AUDITOR</h1>
+    <p style="color:var(--muted); margin-top:8px; font-size:12px;">TAMIL NADU ELECTRICITY BOARD ASSISTANT</p>
+    <div class="type-grid">
+      <div class="type-btn" onclick="initAudit('Home')">
+        <span style="font-size:30px">🏠</span>
+        <h3>HOME</h3>
+      </div>
+      <div class="type-btn" onclick="initAudit('Commercial')">
+        <span style="font-size:30px">🏢</span>
+        <h3>COMMERCIAL</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT FORM -->
+  <div id="audit" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('splash')">← TN EB</button>
+      <h2 id="auditTitle" style="font-family:'Rajdhani'; flex:1">RESIDENTIAL AUDIT</h2>
+    </div>
+
+    <div class="card">
+      <label>Appliance</label>
+      <select id="appId">
+        <option value="AC">Air Conditioner (AC)</option>
+        <option value="Fan">Ceiling Fan</option>
+        <option value="Light">LED / Tube Light</option>
+        <option value="Fridge">Refrigerator</option>
+        <option value="TV">LED Television</option>
+        <option value="Heater">Water Heater / Geyser</option>
+        <option value="Other">Other Custom</option>
+      </select>
+
+      <div class="input-row" style="margin-top:10px;">
+        <div class="input-box">
+          <label>Watts</label>
+          <input type="number" id="inpWatts" placeholder="1500">
+        </div>
+        <div class="input-box">
+          <label>Hours/Day</label>
+          <input type="number" id="inpHours" placeholder="8">
+        </div>
+        <div class="input-box">
+          <label>Qty</label>
+          <input type="number" id="inpQty" value="1">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addAppliance()" style="padding:10px; background:var(--card2); border:1px solid var(--accent); color:var(--accent);">+ ADD APPLIANCE</button>
+    </div>
+
+    <div class="card" style="flex:1; overflow-y:auto;">
+      <h3 style="font-size:14px; margin-bottom:10px; color:var(--muted)">APPLIANCE LIST</h3>
+      <div id="appList"></div>
+    </div>
+
+    <button class="btn-primary" onclick="generateReport()">CALCULATE TN EB BILL</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results" class="screen">
+    <div class="header">
+      <button class="back-btn" onclick="showScreen('audit')">← EDIT DATA</button>
+      <h2 style="font-family:'Rajdhani'">BILL ANALYSIS</h2>
+    </div>
+
+    <div class="summary-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Units (Monthly)</div>
+        <div id="resUnits" class="stat-value">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Estimated TN Bill</div>
+        <div id="resBill" class="stat-value">₹0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-family:'Rajdhani'; color:var(--accent)">WASTE ALERTS</h3>
+      <div id="wasteAlerts"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-family:'Rajdhani'; color:var(--accent3)">UPGRADE ROI (5 YEARS)</h3>
+      <div style="overflow-x:auto">
+        <table id="roiTable">
+          <thead>
+            <tr>
+              <th>Upgrade</th>
+              <th>Saving/Mo</th>
+              <th>Payback</th>
+              <th>Net Profit</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let userType = 'Home';
+    let appliances = [];
+
+    // Preset values
+    const appData = {
+      "AC": { watts: 2000, efficientWatts: 1200, cost: 45000, name: "5-Star AC Upgrade" },
+      "Fan": { watts: 75, efficientWatts: 28, cost: 3500, name: "BLDC Fan Upgrade" },
+      "Light": { watts: 40, efficientWatts: 12, cost: 300, name: "LED Tube Upgrade" },
+      "Fridge": { watts: 250, efficientWatts: 150, cost: 25000, name: "Efficient Fridge" },
+      "TV": { watts: 100, efficientWatts: 60, cost: 15000, name: "Modern TV" },
+      "Heater": { watts: 3000, efficientWatts: 1500, cost: 20000, name: "Solar/Heat Pump" },
+      "Other": { watts: 500, efficientWatts: 400, cost: 10000, name: "Energy Saver" }
+    };
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function initAudit(type) {
+      userType = type;
+      appliances = [];
+      document.getElementById('appList').innerHTML = '';
+      document.getElementById('auditTitle').innerText = (type === 'Home' ? 'RESIDENTIAL' : 'COMMERCIAL') + ' AUDIT';
+      showScreen('audit');
+    }
+
+    document.getElementById('appId').addEventListener('change', function() {
+      const selected = appData[this.value];
+      document.getElementById('inpWatts').value = selected.watts;
+    });
+
+    function addAppliance() {
+      const id = document.getElementById('appId').value;
+      const watts = parseFloat(document.getElementById('inpWatts').value);
+      const hours = parseFloat(document.getElementById('inpHours').value);
+      const qty = parseInt(document.getElementById('inpQty').value);
+
+      if(!watts || !hours || !qty) return alert("Please fill all fields");
+
+      const app = {
+        id,
+        name: document.getElementById('appId').options[document.getElementById('appId').selectedIndex].text,
+        watts,
+        hours,
+        qty,
+        units: (watts * hours * qty * 30) / 1000
+      };
+
+      appliances.push(app);
+      renderList();
+    }
+
+    function renderList() {
+      const container = document.getElementById('appList');
+      container.innerHTML = '';
+      appliances.forEach((app, index) => {
+        container.innerHTML += `
+          <div class="appliance-item">
+            <div>
+              <div style="font-weight:700">${app.name} (${app.qty})</div>
+              <div style="font-size:11px; color:var(--muted)">${app.watts}W × ${app.hours}h = ${app.units.toFixed(1)} units/mo</div>
+            </div>
+            <span class="remove-btn" onclick="removeApp(${index})">×</span>
+          </div>
+        `;
+      });
+    }
+
+    function removeApp(index) {
+      appliances.splice(index, 1);
+      renderList();
+    }
+
+    function calculateTNEB(units) {
+      let cost = 0;
+      if (userType === 'Home') {
+        // Simplified TN Residential Slab (Bi-monthly units usually, but using monthly estimate here)
+        // Rate per unit avg approx ₹4.60 for residential tier 2
+        if (units <= 100) cost = 0;
+        else if (units <= 200) cost = (units - 100) * 2.25;
+        else if (units <= 400) cost = 100 * 0 + 100 * 2.25 + (units - 200) * 4.50;
+        else if (units <= 500) cost = 100 * 0 + 100 * 2.25 + 200 * 4.50 + (units - 400) * 6.00;
+        else cost = 100 * 0 + 100 * 2.25 + 200 * 4.50 + 100 * 6.00 + (units - 500) * 8.00;
+      } else {
+        // Commercial approx flat rate higher tier
+        cost = units * 8.50;
+      }
+      return cost;
+    }
+
+    function getAvgRate(units) {
+        if (units === 0) return 4.60;
+        return calculateTNEB(units) / units || 4.60;
+    }
+
+    function generateReport() {
+      if(appliances.length === 0) return alert("Add some appliances first");
+
+      const totalUnits = appliances.reduce((sum, a) => sum + a.units, 0);
+      const totalBill = calculateTNEB(totalUnits);
+      const avgRate = getAvgRate(totalUnits);
+
+      document.getElementById('resUnits').innerText = totalUnits.toFixed(0);
+      document.getElementById('resBill').innerText = '₹' + totalBill.toFixed(0);
+
+      // Waste alerts
+      const sorted = [...appliances].sort((a,b) => b.units - a.units);
+      const top3 = sorted.slice(0, 3);
+      const alertContainer = document.getElementById('wasteAlerts');
+      alertContainer.innerHTML = '';
+      top3.forEach(a => {
+        alertContainer.innerHTML += `<div class="waste-alert">⚠️ <b>${a.name}</b> consumes ${a.units.toFixed(0)} units/mo (Impact: ₹${(a.units * avgRate).toFixed(0)})</div>`;
+      });
+
+      // ROI Table
+      const tableBody = document.querySelector('#roiTable tbody');
+      tableBody.innerHTML = '';
+
+      top3.forEach(app => {
+        const upgrade = appData[app.id];
+        if(!upgrade) return;
+
+        // Formula: (Old - New) * Hours * 30 * Rate / 1000
+        const unitsSaved = (app.watts - (upgrade.efficientWatts || app.watts*0.6)) * app.hours * app.qty * 30 / 1000;
+        const monthlySaving = unitsSaved * avgRate;
+        const investment = upgrade.cost * app.qty;
+        const paybackMonths = investment / monthlySaving;
+        const fiveYearProfit = (monthlySaving * 60) - investment;
+
+        const isWorthIt = fiveYearProfit > 0;
+        const verdictClass = isWorthIt ? 'verdict-good' : 'verdict-bad';
+        const verdictText = isWorthIt
+            ? `Worth it — pays back in ${paybackMonths.toFixed(0)} months`
+            : `Not worth it — takes ${(paybackMonths/12).toFixed(1)} years`;
+
+        tableBody.innerHTML += `
+          <tr>
+            <td>
+              <b>${upgrade.name}</b><br>
+              <span class="verdict ${verdictClass}">${verdictText}</span>
+            </td>
+            <td>₹${monthlySaving.toFixed(0)}</td>
+            <td>${paybackMonths.toFixed(0)} Mo</td>
+            <td style="color:${fiveYearProfit > 0 ? 'var(--accent3)' : 'var(--danger)'}">₹${fiveYearProfit.toFixed(0)}</td>
+          </tr>
+        `;
+      });
+
+      showScreen('results');
+    }
+  </script>
+</body>
+</html>
