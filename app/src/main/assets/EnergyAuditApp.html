@@ -27,7 +27,7 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden; /* Prevent body scroll, use screen scroll */
   }
 
   body::before {
@@ -42,61 +42,83 @@
 
   .screen {
     display:none;
-    position:relative;
+    position:absolute;
+    inset: 0;
     z-index:1;
     padding: 20px;
-    min-height: 100vh;
+    overflow-y: auto; /* Enable scroll on specific screens */
+    -webkit-overflow-scrolling: touch;
     animation: fadeIn 0.4s ease;
   }
   .screen.active { display:flex; flex-direction: column; }
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+  /* Fix for Full Screen / Notch / Status Bar */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .screen {
+      padding-top: calc(20px + env(safe-area-inset-top));
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      padding-left: calc(20px + env(safe-area-inset-left));
+      padding-right: calc(20px + env(safe-area-inset-right));
+    }
+  }
+
   /* ===== SPLASH ===== */
   #splash { align-items:center; justify-content:center; text-align: center; }
-  .logo-container { position: relative; width: 120px; height: 120px; margin-bottom: 25px; }
+  .logo-container { position: relative; width: 100px; height: 100px; margin-bottom: 20px; }
   .logo-ring { position: absolute; inset: 0; border: 3px solid var(--accent); border-radius: 50%; box-shadow: 0 0 20px rgba(0,212,255,0.4); animation: pulse 2s infinite; }
   @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
-  .logo-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 50px; }
+  .logo-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; }
 
-  .app-name { font-family: 'Rajdhani', sans-serif; font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: 2px; }
+  .app-name { font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700; color: var(--accent); letter-spacing: 2px; }
 
   /* ===== MENU ===== */
-  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; width: 100%; max-width: 400px; }
   .type-btn { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 20px; text-align: center; transition: 0.2s; cursor: pointer; }
   .type-btn:active { background: var(--card2); border-color: var(--accent); }
-  .type-btn h3 { font-family: 'Rajdhani'; font-size: 18px; margin-top: 10px; }
+  .type-btn h3 { font-family: 'Rajdhani'; font-size: 16px; margin-top: 10px; }
 
   /* ===== AUDIT FORM ===== */
-  .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-  .back-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 5px 12px; border-radius: 8px; font-size: 12px; }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; flex-shrink: 0; }
+  .back-btn { background: #1f2937; border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; }
 
-  .card { background: var(--card); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-  .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
-  .input-box { flex: 1; }
-  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
-  input, select { width: 100%; background: #1f2937; border: 1px solid var(--border); border-radius: 8px; color: white; padding: 10px; font-size: 14px; }
+  .card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); width: 100%; }
+  .input-row { display: flex; gap: 8px; margin-top: 10px; }
+  .input-box { flex: 1; min-width: 0; }
+  label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select { width: 100%; background: #1f2937; border: 1px solid var(--border); border-radius: 6px; color: white; padding: 8px; font-size: 14px; outline: none; }
+  input:focus { border-color: var(--accent); }
 
-  .appliance-item { border-bottom: 1px solid var(--border); padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-  .remove-btn { color: var(--danger); font-size: 18px; cursor: pointer; padding: 5px; }
+  .list-container { flex: 1; overflow-y: auto; min-height: 150px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 10px; margin-bottom: 15px; border: 1px dashed var(--border); }
+  .appliance-item { border-bottom: 1px solid var(--border); padding: 8px 0; display: flex; justify-content: space-between; align-items: center; animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:translateX(0); } }
+  .remove-btn { color: var(--danger); font-size: 20px; cursor: pointer; padding: 0 10px; }
 
-  .btn-primary { background: var(--accent); color: var(--bg); border: none; padding: 15px; border-radius: 10px; font-weight: 700; width: 100%; margin-top: 10px; }
+  .btn-primary { background: var(--accent); color: var(--bg); border: none; padding: 14px; border-radius: 10px; font-weight: 700; width: 100%; font-size: 14px; letter-spacing: 1px; flex-shrink: 0; }
+  .btn-secondary { background: var(--card2); border: 1px solid var(--accent); color: var(--accent); padding: 10px; border-radius: 8px; width: 100%; font-size: 12px; margin-top: 5px; }
 
   /* ===== RESULTS ===== */
-  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-  .stat-card { background: var(--card2); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
-  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
-  .stat-value { font-size: 18px; font-weight: 700; color: var(--accent3); }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; flex-shrink: 0; }
+  .stat-card { background: var(--card2); padding: 12px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+  .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-size: 18px; font-weight: 800; color: var(--accent3); }
 
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-  th { text-align: left; color: var(--muted); padding: 8px 4px; border-bottom: 1px solid var(--border); }
-  td { padding: 8px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .table-wrapper { overflow-x: auto; width: 100%; border-radius: 8px; background: rgba(0,0,0,0.2); }
+  table { width: 100%; border-collapse: collapse; min-width: 300px; }
+  th { text-align: left; color: var(--muted); padding: 10px 8px; border-bottom: 2px solid var(--border); font-size: 10px; text-transform: uppercase; }
+  td { padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
 
-  .verdict { font-size: 11px; font-weight: 600; padding: 3px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
-  .verdict-good { background: rgba(0,255,136,0.2); color: var(--accent3); }
-  .verdict-bad { background: rgba(255,68,68,0.2); color: var(--danger); }
+  .verdict { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; text-transform: uppercase; }
+  .verdict-good { background: rgba(0,255,136,0.15); color: var(--accent3); border: 1px solid rgba(0,255,136,0.3); }
+  .verdict-bad { background: rgba(255,68,68,0.15); color: var(--danger); border: 1px solid rgba(255,68,68,0.3); }
 
-  .waste-alert { color: var(--accent2); background: rgba(255,107,53,0.1); border-left: 3px solid var(--accent2); padding: 10px; margin-top: 10px; border-radius: 0 8px 8px 0; font-size: 13px; }
+  .waste-alert { color: var(--accent2); background: rgba(255,107,53,0.08); border-left: 4px solid var(--accent2); padding: 12px; margin-bottom: 10px; border-radius: 0 8px 8px 0; font-size: 12px; line-height: 1.4; }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 </style>
 </head>
 <body>
@@ -108,15 +130,15 @@
       <div class="logo-icon">⚡</div>
     </div>
     <h1 class="app-name">TN ENERGY AUDITOR</h1>
-    <p style="color:var(--muted); margin-top:8px; font-size:12px;">TAMIL NADU ELECTRICITY BOARD ASSISTANT</p>
+    <p style="color:var(--muted); margin-top:8px; font-size:11px; letter-spacing:1px;">TANGEDCO (EB) SMART ASSISTANT</p>
     <div class="type-grid">
       <div class="type-btn" onclick="initAudit('Home')">
-        <span style="font-size:30px">🏠</span>
+        <span style="font-size:28px">🏠</span>
         <h3>HOME</h3>
       </div>
       <div class="type-btn" onclick="initAudit('Commercial')">
-        <span style="font-size:30px">🏢</span>
-        <h3>COMMERCIAL</h3>
+        <span style="font-size:28px">🏢</span>
+        <h3>BUSINESS</h3>
       </div>
     </div>
   </div>
@@ -124,15 +146,15 @@
   <!-- AUDIT FORM -->
   <div id="audit" class="screen">
     <div class="header">
-      <button class="back-btn" onclick="showScreen('splash')">← TN EB</button>
-      <h2 id="auditTitle" style="font-family:'Rajdhani'; flex:1">RESIDENTIAL AUDIT</h2>
+      <button class="back-btn" onclick="showScreen('splash')">← EXIT</button>
+      <h2 id="auditTitle" style="font-family:'Rajdhani'; font-size:20px; color:var(--accent)">RESIDENTIAL</h2>
     </div>
 
-    <div class="card">
-      <label>Appliance</label>
+    <div class="card" style="flex-shrink:0;">
+      <label>Select Appliance</label>
       <select id="appId">
         <option value="AC">Air Conditioner (AC)</option>
-        <option value="Fan">Ceiling Fan</option>
+        <option value="Fan" selected>Ceiling Fan</option>
         <option value="Light">LED / Tube Light</option>
         <option value="Fridge">Refrigerator</option>
         <option value="TV">LED Television</option>
@@ -140,10 +162,10 @@
         <option value="Other">Other Custom</option>
       </select>
 
-      <div class="input-row" style="margin-top:10px;">
+      <div class="input-row">
         <div class="input-box">
           <label>Watts</label>
-          <input type="number" id="inpWatts" placeholder="1500">
+          <input type="number" id="inpWatts" value="75">
         </div>
         <div class="input-box">
           <label>Hours/Day</label>
@@ -154,83 +176,87 @@
           <input type="number" id="inpQty" value="1">
         </div>
       </div>
-      <button class="btn-primary" onclick="addAppliance()" style="padding:10px; background:var(--card2); border:1px solid var(--accent); color:var(--accent);">+ ADD APPLIANCE</button>
+      <button class="btn-secondary" onclick="addAppliance()">+ ADD TO LIST</button>
     </div>
 
-    <div class="card" style="flex:1; overflow-y:auto;">
-      <h3 style="font-size:14px; margin-bottom:10px; color:var(--muted)">APPLIANCE LIST</h3>
-      <div id="appList"></div>
+    <h3 style="font-size:12px; margin-bottom:8px; color:var(--muted); text-transform:uppercase;">Appliance Inventory</h3>
+    <div id="appList" class="list-container">
+      <!-- Items appear here -->
+      <p id="emptyMsg" style="text-align:center; color:var(--muted); font-size:12px; margin-top:40px;">No appliances added yet.</p>
     </div>
 
-    <button class="btn-primary" onclick="generateReport()">CALCULATE TN EB BILL</button>
+    <button class="btn-primary" onclick="generateReport()">GENERATE AUDIT REPORT</button>
   </div>
 
   <!-- RESULTS -->
   <div id="results" class="screen">
     <div class="header">
-      <button class="back-btn" onclick="showScreen('audit')">← EDIT DATA</button>
-      <h2 style="font-family:'Rajdhani'">BILL ANALYSIS</h2>
+      <button class="back-btn" onclick="showScreen('audit')">← EDIT</button>
+      <h2 style="font-family:'Rajdhani'; font-size:20px; color:var(--accent3)">BILL ANALYSIS</h2>
     </div>
 
     <div class="summary-grid">
       <div class="stat-card">
-        <div class="stat-label">Total Units (Monthly)</div>
+        <div class="stat-label">Monthly Units</div>
         <div id="resUnits" class="stat-value">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Estimated TN Bill</div>
+        <div class="stat-label">Estimated Bill</div>
         <div id="resBill" class="stat-value">₹0</div>
       </div>
     </div>
 
     <div class="card">
-      <h3 style="font-family:'Rajdhani'; color:var(--accent)">WASTE ALERTS</h3>
+      <h3 style="font-family:'Rajdhani'; font-size:16px; color:var(--accent2); margin-bottom:10px;">🔴 WASTE ALERTS</h3>
       <div id="wasteAlerts"></div>
     </div>
 
     <div class="card">
-      <h3 style="font-family:'Rajdhani'; color:var(--accent3)">UPGRADE ROI (5 YEARS)</h3>
-      <div style="overflow-x:auto">
+      <h3 style="font-family:'Rajdhani'; font-size:16px; color:var(--accent3); margin-bottom:10px;">💰 SAVINGS & ROI (5YR)</h3>
+      <div class="table-wrapper">
         <table id="roiTable">
           <thead>
             <tr>
-              <th>Upgrade</th>
-              <th>Saving/Mo</th>
+              <th>Upgrade Action</th>
+              <th>Save/Mo</th>
               <th>Payback</th>
-              <th>Net Profit</th>
+              <th>Profit</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
+
+    <button class="btn-primary" style="margin-top:10px; background:var(--card2); border:1px solid var(--border); color:var(--muted)" onclick="showScreen('splash')">START NEW AUDIT</button>
   </div>
 
   <script>
     let userType = 'Home';
     let appliances = [];
 
-    // Preset values
     const appData = {
-      "AC": { watts: 2000, efficientWatts: 1200, cost: 45000, name: "5-Star AC Upgrade" },
-      "Fan": { watts: 75, efficientWatts: 28, cost: 3500, name: "BLDC Fan Upgrade" },
-      "Light": { watts: 40, efficientWatts: 12, cost: 300, name: "LED Tube Upgrade" },
-      "Fridge": { watts: 250, efficientWatts: 150, cost: 25000, name: "Efficient Fridge" },
-      "TV": { watts: 100, efficientWatts: 60, cost: 15000, name: "Modern TV" },
-      "Heater": { watts: 3000, efficientWatts: 1500, cost: 20000, name: "Solar/Heat Pump" },
-      "Other": { watts: 500, efficientWatts: 400, cost: 10000, name: "Energy Saver" }
+      "AC": { watts: 2000, efficientWatts: 1200, cost: 45000, name: "5-Star AC" },
+      "Fan": { watts: 75, efficientWatts: 28, cost: 3400, name: "BLDC Fan" },
+      "Light": { watts: 40, efficientWatts: 12, cost: 350, name: "LED Tube" },
+      "Fridge": { watts: 250, efficientWatts: 140, cost: 22000, name: "Energy Star Fridge" },
+      "TV": { watts: 100, efficientWatts: 50, cost: 12000, name: "Modern LED TV" },
+      "Heater": { watts: 2500, efficientWatts: 1200, cost: 18000, name: "Solar / Heat Pump" },
+      "Other": { watts: 500, efficientWatts: 350, cost: 5000, name: "Energy Saver" }
     };
 
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
+      // Scroll to top when switching screens
+      document.getElementById(id).scrollTop = 0;
     }
 
     function initAudit(type) {
       userType = type;
       appliances = [];
-      document.getElementById('appList').innerHTML = '';
-      document.getElementById('auditTitle').innerText = (type === 'Home' ? 'RESIDENTIAL' : 'COMMERCIAL') + ' AUDIT';
+      renderList();
+      document.getElementById('auditTitle').innerText = (type === 'Home' ? 'RESIDENTIAL' : 'BUSINESS') + ' AUDIT';
       showScreen('audit');
     }
 
@@ -245,7 +271,10 @@
       const hours = parseFloat(document.getElementById('inpHours').value);
       const qty = parseInt(document.getElementById('inpQty').value);
 
-      if(!watts || !hours || !qty) return alert("Please fill all fields");
+      if(!watts || !hours || !qty) {
+        alert("Please enter all details");
+        return;
+      }
 
       const app = {
         id,
@@ -262,18 +291,28 @@
 
     function renderList() {
       const container = document.getElementById('appList');
-      container.innerHTML = '';
-      appliances.forEach((app, index) => {
-        container.innerHTML += `
-          <div class="appliance-item">
+      const emptyMsg = document.getElementById('emptyMsg');
+
+      const items = container.querySelectorAll('.appliance-item');
+      items.forEach(i => i.remove());
+
+      if (appliances.length === 0) {
+        emptyMsg.style.display = 'block';
+      } else {
+        emptyMsg.style.display = 'none';
+        appliances.forEach((app, index) => {
+          const div = document.createElement('div');
+          div.className = 'appliance-item';
+          div.innerHTML = `
             <div>
-              <div style="font-weight:700">${app.name} (${app.qty})</div>
-              <div style="font-size:11px; color:var(--muted)">${app.watts}W × ${app.hours}h = ${app.units.toFixed(1)} units/mo</div>
+              <div style="font-weight:700; font-size:13px">${app.name} (${app.qty})</div>
+              <div style="font-size:10px; color:var(--muted)">${app.watts}W × ${app.hours}h = <b>${app.units.toFixed(1)} Units/mo</b></div>
             </div>
             <span class="remove-btn" onclick="removeApp(${index})">×</span>
-          </div>
-        `;
-      });
+          `;
+          container.appendChild(div);
+        });
+      }
     }
 
     function removeApp(index) {
@@ -284,45 +323,41 @@
     function calculateTNEB(units) {
       let cost = 0;
       if (userType === 'Home') {
-        // Simplified TN Residential Slab (Bi-monthly units usually, but using monthly estimate here)
-        // Rate per unit avg approx ₹4.60 for residential tier 2
         if (units <= 100) cost = 0;
         else if (units <= 200) cost = (units - 100) * 2.25;
         else if (units <= 400) cost = 100 * 0 + 100 * 2.25 + (units - 200) * 4.50;
         else if (units <= 500) cost = 100 * 0 + 100 * 2.25 + 200 * 4.50 + (units - 400) * 6.00;
         else cost = 100 * 0 + 100 * 2.25 + 200 * 4.50 + 100 * 6.00 + (units - 500) * 8.00;
       } else {
-        // Commercial approx flat rate higher tier
         cost = units * 8.50;
       }
       return cost;
     }
 
-    function getAvgRate(units) {
-        if (units === 0) return 4.60;
-        return calculateTNEB(units) / units || 4.60;
-    }
-
     function generateReport() {
-      if(appliances.length === 0) return alert("Add some appliances first");
+      if(appliances.length === 0) return alert("Please add at least one appliance.");
 
       const totalUnits = appliances.reduce((sum, a) => sum + a.units, 0);
       const totalBill = calculateTNEB(totalUnits);
-      const avgRate = getAvgRate(totalUnits);
+      const avgRate = totalUnits > 0 ? totalBill / totalUnits : 4.60;
+      const rateToUse = Math.max(avgRate, 4.50); // Minimum rate floor for ROI calculation
 
       document.getElementById('resUnits').innerText = totalUnits.toFixed(0);
       document.getElementById('resBill').innerText = '₹' + totalBill.toFixed(0);
 
-      // Waste alerts
       const sorted = [...appliances].sort((a,b) => b.units - a.units);
       const top3 = sorted.slice(0, 3);
       const alertContainer = document.getElementById('wasteAlerts');
       alertContainer.innerHTML = '';
+
       top3.forEach(a => {
-        alertContainer.innerHTML += `<div class="waste-alert">⚠️ <b>${a.name}</b> consumes ${a.units.toFixed(0)} units/mo (Impact: ₹${(a.units * avgRate).toFixed(0)})</div>`;
+        alertContainer.innerHTML += `
+          <div class="waste-alert">
+            <b>${a.name}</b> is your #1 cost source.<br>
+            Consumes ${a.units.toFixed(0)} units/mo — Costing <b>₹${(a.units * rateToUse).toFixed(0)}</b> monthly.
+          </div>`;
       });
 
-      // ROI Table
       const tableBody = document.querySelector('#roiTable tbody');
       tableBody.innerHTML = '';
 
@@ -330,27 +365,26 @@
         const upgrade = appData[app.id];
         if(!upgrade) return;
 
-        // Formula: (Old - New) * Hours * 30 * Rate / 1000
         const unitsSaved = (app.watts - (upgrade.efficientWatts || app.watts*0.6)) * app.hours * app.qty * 30 / 1000;
-        const monthlySaving = unitsSaved * avgRate;
+        const monthlySaving = unitsSaved * rateToUse;
         const investment = upgrade.cost * app.qty;
-        const paybackMonths = investment / monthlySaving;
+        const paybackMonths = monthlySaving > 0 ? investment / monthlySaving : 999;
         const fiveYearProfit = (monthlySaving * 60) - investment;
 
         const isWorthIt = fiveYearProfit > 0;
         const verdictClass = isWorthIt ? 'verdict-good' : 'verdict-bad';
         const verdictText = isWorthIt
-            ? `Worth it — pays back in ${paybackMonths.toFixed(0)} months`
-            : `Not worth it — takes ${(paybackMonths/12).toFixed(1)} years`;
+            ? `Worth it — ${paybackMonths.toFixed(0)}m payback`
+            : `Slow ROI — ${(paybackMonths/12).toFixed(1)}yr payback`;
 
         tableBody.innerHTML += `
           <tr>
-            <td>
-              <b>${upgrade.name}</b><br>
+            <td style="line-height:1.2">
+              <b style="color:var(--accent)">${upgrade.name}</b><br>
               <span class="verdict ${verdictClass}">${verdictText}</span>
             </td>
             <td>₹${monthlySaving.toFixed(0)}</td>
-            <td>${paybackMonths.toFixed(0)} Mo</td>
+            <td>${paybackMonths > 100 ? '>10y' : paybackMonths.toFixed(0)+'m'}</td>
             <td style="color:${fiveYearProfit > 0 ? 'var(--accent3)' : 'var(--danger)'}">₹${fiveYearProfit.toFixed(0)}</td>
           </tr>
         `;
